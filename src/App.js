@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, 
-  signInWithCustomToken, 
-  signInAnonymously, 
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -128,9 +126,16 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
-  const [view, setView] = useState('home'); 
+  const [view, setView] = useState(() => {
+    // Restore view from localStorage
+    const savedView = localStorage.getItem('lastView');
+    return savedView || 'home';
+  });
   const [sessions, setSessions] = useState([]);
-  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(() => {
+    // Restore sessionId from localStorage
+    return localStorage.getItem('lastSessionId');
+  });
   const [items, setItems] = useState([]);
   const [lang, setLang] = useState('en');
   const [currency, setCurrency] = useState({ code: 'JPY', symbol: '¥' });
@@ -160,25 +165,20 @@ export default function App() {
 
   const t = translations[lang] || translations.en;
 
-  // Authentication logic updated for local environment stability
+  // Save view to localStorage whenever it changes
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const initialToken = typeof window !== 'undefined' ? window.__initial_auth_token : null;
-        
-        if (initialToken) {
-          await signInWithCustomToken(auth, initialToken);
-        } else if (!auth.currentUser) {
-          // Fallback to anonymous for local testing if no user session exists
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Auth init error", err);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-    initAuth();
+    localStorage.setItem('lastView', view);
+  }, [view]);
+
+  // Save sessionId to localStorage whenever it changes
+  useEffect(() => {
+    if (currentSessionId) {
+      localStorage.setItem('lastSessionId', currentSessionId);
+    }
+  }, [currentSessionId]);
+
+  // Authentication logic - Firebase persists session automatically
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setAuthLoading(false);
@@ -548,7 +548,11 @@ export default function App() {
             setIsCreatePopupOpen={setIsCreatePopupOpen}
             tempMarket={tempMarket}
             t={t}
-            onSignOut={() => signOut(auth)}
+            onSignOut={() => {
+              localStorage.removeItem('lastView');
+              localStorage.removeItem('lastSessionId');
+              signOut(auth);
+            }}
           />
         )}
 
