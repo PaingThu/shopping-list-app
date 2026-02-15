@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, Check, Receipt, ChevronLeft, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Check, Receipt, ChevronLeft, Loader2, RotateCcw } from 'lucide-react';
 
 export default function ShoppingPage({
   sessions,
@@ -84,10 +84,15 @@ export default function ShoppingPage({
                     {isCreator ? (
                       <div className="w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center mr-3 shrink-0 opacity-60"><Check size={16} strokeWidth={3} /></div>
                     ) : (
-                      currentSessionId && <input type="radio" checked readOnly className="mr-3 w-5 h-5" />
+                      currentSessionId && <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center mr-3 shrink-0"><Check size={16} strokeWidth={3} /></div>
                     )}
                     <span className="flex-1 text-sm font-medium text-gray-400 line-through truncate">{item.text}</span>
-                    <div className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg shrink-0">{parseFloat(item.price).toLocaleString()} {currency.symbol}</div>
+                    <div className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg mr-2 shrink-0">{parseFloat(item.price).toLocaleString()} {currency.symbol}</div>
+                    {!isCreator && currentSessionId && (
+                      <button onClick={() => handleCheckClick(item)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Move back to To Find">
+                        <RotateCcw size={18} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
