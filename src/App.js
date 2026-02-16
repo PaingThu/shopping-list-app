@@ -321,9 +321,22 @@ export default function App() {
       return;
     }
     if (item.completed) {
+      // Moving item back from Bought to To Find - subtract price from total
+      const priceToSubtract = parseFloat(item.price || 0);
+      
+      // Update item to uncompleted and clear price
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', currentSessionId, 'items', item.id), {
         completed: false, price: ''
       });
+      
+      // Decrement session total atomically if price is valid
+      if (currentSessionId && priceToSubtract > 0) {
+        try {
+          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', currentSessionId), {
+            total: increment(-priceToSubtract)
+          });
+        } catch (err) { console.error('Error decrementing total:', err); }
+      }
     } else {
       setItemToBuy(item);
       setInputPrice('');
