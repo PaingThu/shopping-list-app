@@ -544,6 +544,7 @@ export default function App() {
   const boughtItemsDisplay = items.filter(i => i.completed);
   const currentSession = sessions.find(s => s.id === currentSessionId);
   const isCreator = currentSession?.createdBy === user?.uid;
+  const isBuyer = currentSession?.buyerEmail && user?.email && currentSession.buyerEmail === user.email;
   
 
   return (
@@ -578,6 +579,7 @@ export default function App() {
             isGeneratingPdf={isGeneratingPdf}
             activeItems={activeItems}
             isCreator={isCreator}
+            isBuyer={isBuyer}
             handleCheckClick={handleCheckClick}
             deleteItem={deleteItem}
             currency={currency}

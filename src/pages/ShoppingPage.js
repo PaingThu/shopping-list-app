@@ -9,6 +9,7 @@ export default function ShoppingPage({
   isGeneratingPdf,
   activeItems,
   isCreator,
+  isBuyer,
   handleCheckClick,
   deleteItem,
   currency,
@@ -51,7 +52,7 @@ export default function ShoppingPage({
                 <p className="text-[10px] text-indigo-200 mt-1 font-bold uppercase tracking-wider">Total: {(sessions.find(s => s.id === currentSessionId)?.total || 0).toLocaleString()} {currency.symbol}</p>
               </div>
             </div>
-            <button onClick={handleCheckoutClick} disabled={isGeneratingPdf} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
+            <button onClick={handleCheckoutClick} disabled={isGeneratingPdf || !isBuyer} className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg ${isBuyer ? 'bg-green-500' : 'hidden'}`}>
               {isGeneratingPdf ? <Loader2 size={14} className="animate-spin" /> : <Receipt size={14} />} {t.checkout}
             </button>
           </div>
