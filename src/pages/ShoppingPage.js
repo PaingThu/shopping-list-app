@@ -63,7 +63,7 @@ export default function ShoppingPage({
             <div className="space-y-2">
               {activeItems.map(item => (
                 <div key={item.id} className="flex items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                  {isCreator ? (
+                  {isCreator && !isBuyer ? (
                     <div className="w-7 h-7 rounded-full border-2 border-indigo-200 mr-3 shrink-0 opacity-40" title="Only buyer can mark items bought" />
                   ) : (
                     currentSessionId && (
@@ -82,14 +82,14 @@ export default function ShoppingPage({
               <div className="space-y-2">
                 {boughtItemsDisplay.map(item => (
                   <div key={item.id} className="flex items-center bg-gray-50/50 p-4 rounded-xl border border-dashed border-gray-200 opacity-80">
-                    {isCreator ? (
+                    {isCreator && !isBuyer ? (
                       <div className="w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center mr-3 shrink-0 opacity-60"><Check size={16} strokeWidth={3} /></div>
                     ) : (
                       currentSessionId && <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center mr-3 shrink-0"><Check size={16} strokeWidth={3} /></div>
                     )}
                     <span className="flex-1 text-sm font-medium text-gray-400 line-through truncate">{item.text}</span>
                     <div className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg mr-2 shrink-0">{parseFloat(item.price).toLocaleString()} {currency.symbol}</div>
-                    {!isCreator && currentSessionId && (
+                    {(isBuyer) && currentSessionId && (
                       <button onClick={() => handleCheckClick(item)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Move back to To Find">
                         <RotateCcw size={18} />
                       </button>
