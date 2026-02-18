@@ -59,10 +59,12 @@ export default function HomePage({
                     <div className="overflow-hidden">
                       <div className="flex items-center gap-2">
                         <h3 className="font-black text-gray-800 text-sm truncate">{session.name}</h3>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-400 mt-0.5">{session.date} • {session.buyerEmail}</p>
+                      <div className="flex items-center gap-2 mt-1">
                         {isCreator && <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full shrink-0">Creator</span>}
                         {isBuyer && <span className="text-[9px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full shrink-0">Buyer</span>}
                       </div>
-                      <p className="text-[10px] font-bold text-gray-400 mt-0.5">{session.date} • {session.buyerEmail}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
