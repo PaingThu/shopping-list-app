@@ -10,6 +10,7 @@ export default function ShoppingPage({
   activeItems,
   isCreator,
   isBuyer,
+  isCheckedOut,
   handleCheckClick,
   deleteItem,
   currency,
@@ -43,7 +44,12 @@ export default function ShoppingPage({
   return (
     <>
       <div className="flex flex-col h-full animate-in slide-in-from-right duration-300">
-        <header className="bg-indigo-600 text-white p-4 pt-safe-top shadow-md z-10">
+        {isCheckedOut && (
+          <div className="bg-green-500 text-white p-3 text-center font-bold text-sm shadow-md">
+            ✓ Shopping Complete - Checkout Finished
+          </div>
+        )}
+        <header className={`${isCheckedOut ? 'bg-green-700' : 'bg-indigo-600'} text-white p-4 pt-safe-top shadow-md z-10 transition-colors`}>
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center space-x-2">
               <button onClick={() => setView('home')} className="p-2 -ml-2 hover:bg-white/10 rounded-full"><ChevronLeft size={24} /></button>
@@ -52,7 +58,7 @@ export default function ShoppingPage({
                 <p className="text-[10px] text-indigo-200 mt-1 font-bold uppercase tracking-wider">Total: {(sessions.find(s => s.id === currentSessionId)?.total || 0).toLocaleString()} {currency.symbol}</p>
               </div>
             </div>
-            <button onClick={handleCheckoutClick} disabled={isGeneratingPdf || !isBuyer} className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg ${isBuyer ? 'bg-green-500' : 'hidden'}`}>
+            <button onClick={handleCheckoutClick} disabled={isGeneratingPdf || !isBuyer || isCheckedOut} className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg ${isCheckedOut || !isBuyer ? 'hidden' : 'bg-green-500'}`}>
               {isGeneratingPdf ? <Loader2 size={14} className="animate-spin" /> : <Receipt size={14} />} {t.checkout}
             </button>
           </div>
@@ -62,16 +68,16 @@ export default function ShoppingPage({
             <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">{t.toFind}</h2>
             <div className="space-y-2">
               {activeItems.map(item => (
-                <div key={item.id} className="flex items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div key={item.id} className={`flex items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm ${isCheckedOut ? 'opacity-60' : ''}`}>
                   {isCreator && !isBuyer ? (
                     <div className="w-7 h-7 rounded-full border-2 border-indigo-200 mr-3 shrink-0 opacity-40" title="Only buyer can mark items bought" />
                   ) : (
                     currentSessionId && (
-                      <input type="radio" name={`buyer-select-${currentSessionId}`} onChange={() => handleCheckClick(item)} className="mr-3 w-5 h-5" />
+                      <input type="radio" name={`buyer-select-${currentSessionId}`} onChange={() => handleCheckClick(item)} className="mr-3 w-5 h-5" disabled={isCheckedOut} />
                     )
                   )}
                   <span className="flex-1 text-sm font-bold text-gray-700 truncate">{item.text}</span>
-                  <button onClick={() => deleteItem(item.id)} className="p-2 text-gray-300 hover:text-red-500 shrink-0"><Trash2 size={18}/></button>
+                  <button onClick={() => deleteItem(item.id)} className="p-2 text-gray-300 hover:text-red-500 shrink-0" disabled={isCheckedOut}><Trash2 size={18}/></button>
                 </div>
               ))}
             </div>
@@ -90,7 +96,7 @@ export default function ShoppingPage({
                     <span className="flex-1 text-sm font-medium text-gray-400 line-through truncate">{item.text}</span>
                     <div className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg mr-2 shrink-0">{parseFloat(item.price).toLocaleString()} {currency.symbol}</div>
                     {(isBuyer) && currentSessionId && (
-                      <button onClick={() => handleCheckClick(item)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Move back to To Find">
+                      <button onClick={() => handleCheckClick(item)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Move back to To Find" disabled={isCheckedOut}>
                         <RotateCcw size={18} />
                       </button>
                     )}
@@ -106,11 +112,11 @@ export default function ShoppingPage({
               type="text"
               value={newItemText}
               onChange={(e) => setNewItemText(e.target.value)}
-              placeholder={isCreator ? t.placeholder : 'View only — creator can add items'}
-              disabled={!isCreator}
+              placeholder={isCheckedOut ? 'Read-only — checked out' : isCreator ? t.placeholder : 'View only — creator can add items'}
+              disabled={!isCreator || isCheckedOut}
               className="flex-1 px-4 py-3.5 bg-gray-100 rounded-2xl text-sm font-bold outline-none border-2 border-transparent focus:border-indigo-500 disabled:opacity-50"
             />
-            <button type="submit" disabled={!newItemText.trim() || !isCreator} className="bg-indigo-600 text-white p-3.5 rounded-2xl shadow-lg active:scale-95 disabled:opacity-50">
+            <button type="submit" disabled={!newItemText.trim() || !isCreator || isCheckedOut} className="bg-indigo-600 text-white p-3.5 rounded-2xl shadow-lg active:scale-95 disabled:opacity-50">
               <Plus size={24} strokeWidth={2.5} />
             </button>
           </form>

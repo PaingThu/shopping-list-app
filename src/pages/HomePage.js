@@ -64,6 +64,7 @@ export default function HomePage({
                       <div className="flex items-center gap-2 mt-1">
                         {isCreator && <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full shrink-0">Creator</span>}
                         {isBuyer && <span className="text-[9px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full shrink-0">Buyer</span>}
+                        {session.isCheckedOut && <span className="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full shrink-0 ml-auto">Shopping Completed</span>}
                       </div>
                     </div>
                   </div>

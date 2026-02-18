@@ -299,6 +299,11 @@ export default function App() {
     if (!newItemText.trim() || !currentSessionId) return;
     const session = sessions.find(s => s.id === currentSessionId);
     if (!session) return;
+    // Check if session is already checked out
+    if (session.isCheckedOut) {
+      console.warn('Cannot add items: shopping list has been checked out.');
+      return;
+    }
     // Only the creator (session.createdBy) can add items
     if (session.createdBy !== user?.uid) {
       console.warn('Add item blocked: only the list creator can add items.');
@@ -315,6 +320,11 @@ export default function App() {
 
   const handleCheckClick = async (item) => {
     const session = sessions.find(s => s.id === currentSessionId);
+    // Check if session is already checked out
+    if (session?.isCheckedOut) {
+      console.warn('Cannot modify items: shopping list has been checked out.');
+      return;
+    }
     const isBuyer = session?.buyerEmail && user?.email && session.buyerEmail === user.email;
     if (!isBuyer) {
       console.warn('Only the designated buyer can mark items as bought/unbought.');
@@ -376,6 +386,12 @@ export default function App() {
   const confirmPrice = async (e) => {
     if (e) e.preventDefault();
     if (!inputPrice || inputPrice <= 0) return;
+    const session = sessions.find(s => s.id === currentSessionId);
+    // Check if session is already checked out
+    if (session?.isCheckedOut) {
+      console.warn('Cannot modify prices: shopping list has been checked out.');
+      return;
+    }
     const priceNum = parseFloat(inputPrice);
     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', currentSessionId, 'items', itemToBuy.id), {
       completed: true, price: priceNum
@@ -393,6 +409,12 @@ export default function App() {
   };
 
   const deleteItem = async (id) => {
+    const session = sessions.find(s => s.id === currentSessionId);
+    // Check if session is already checked out
+    if (session?.isCheckedOut) {
+      console.warn('Cannot delete items: shopping list has been checked out.');
+      return;
+    }
     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', currentSessionId, 'items', id));
   };
 
@@ -419,36 +441,36 @@ export default function App() {
     generateFinalPdf();
   };
 
-  const generateFinalPdf = () => {
+  const generateFinalPdf = async () => {
     if (!window.jspdf) return;
     setIsGeneratingPdf(true);
     const session = sessions.find(s => s.id === currentSessionId);
     try {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+      const pdfDoc = new jsPDF();
       
       // Header
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.text(t.pdfTitle, 14, 22);
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.setFontSize(20);
+      pdfDoc.text(t.pdfTitle, 14, 22);
       
       // Divider line
-      doc.setLineWidth(0.5);
-      doc.line(14, 25, 196, 25);
+      pdfDoc.setLineWidth(0.5);
+      pdfDoc.line(14, 25, 196, 25);
       
       // Session Details
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(`List Name: ${session?.name}`, 14, 32);
-      doc.text(`Market: ${session?.market}`, 14, 37);
-      doc.text(`Buyer: ${session?.buyerEmail}`, 14, 42);
+      pdfDoc.setFontSize(10);
+      pdfDoc.setFont("helvetica", "normal");
+      pdfDoc.text(`List Name: ${session?.name}`, 14, 32);
+      pdfDoc.text(`Market: ${session?.market}`, 14, 37);
+      pdfDoc.text(`Buyer: ${session?.buyerEmail}`, 14, 42);
       
       // Date and Time
       const today = new Date();
       const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       const timeStr = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      doc.text(`Date: ${dateStr}`, 14, 47);
-      doc.text(`Time: ${timeStr}`, 14, 52);
+      pdfDoc.text(`Date: ${dateStr}`, 14, 47);
+      pdfDoc.text(`Time: ${timeStr}`, 14, 52);
       
       const boughtItems = items.filter(i => i.completed);
       const unboughtItems = items.filter(i => !i.completed);
@@ -457,12 +479,12 @@ export default function App() {
       
       // Bought items table
       if (boughtItems.length > 0) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.text("✓ Bought Items", 14, startY);
+        pdfDoc.setFont("helvetica", "bold");
+        pdfDoc.setFontSize(11);
+        pdfDoc.text("✓ Bought Items", 14, startY);
         startY += 5;
-        doc.setFontSize(10);
-        doc.autoTable({
+        pdfDoc.setFontSize(10);
+        pdfDoc.autoTable({
           startY: startY,
           head: [[t.itemName, t.price]],
           body: boughtItems.map(i => [i.text, `${parseFloat(i.price || 0).toLocaleString()} ${currency.symbol}`]),
@@ -471,17 +493,17 @@ export default function App() {
           alternateRowStyles: { fillColor: [240, 240, 240] },
           margin: { left: 14, right: 14 }
         });
-        startY = doc.lastAutoTable.finalY + 10;
+        startY = pdfDoc.lastAutoTable.finalY + 10;
       }
       
       // Unbought items table
       if (unboughtItems.length > 0) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.text("✗ Not Bought Items", 14, startY);
+        pdfDoc.setFont("helvetica", "bold");
+        pdfDoc.setFontSize(11);
+        pdfDoc.text("✗ Not Bought Items", 14, startY);
         startY += 5;
-        doc.setFontSize(10);
-        doc.autoTable({
+        pdfDoc.setFontSize(10);
+        pdfDoc.autoTable({
           startY: startY,
           head: [[t.itemName, "Status"]],
           body: unboughtItems.map(i => [i.text, unboughtItemStatuses[i.id] || 'Not Found']),
@@ -490,25 +512,38 @@ export default function App() {
           alternateRowStyles: { fillColor: [255, 240, 240] },
           margin: { left: 14, right: 14 }
         });
-        startY = doc.lastAutoTable.finalY + 10;
+        startY = pdfDoc.lastAutoTable.finalY + 10;
       }
       
       // Summary Section
-      doc.setLineWidth(0.3);
-      doc.line(14, startY - 2, 196, startY - 2);
+      pdfDoc.setLineWidth(0.3);
+      pdfDoc.line(14, startY - 2, 196, startY - 2);
       
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.setFontSize(12);
       const totalAmount = `TOTAL: ${(session?.total || 0).toLocaleString()} ${currency.symbol}`;
-      doc.text(totalAmount, 14, startY + 8);
+      pdfDoc.text(totalAmount, 14, startY + 8);
       
       // Summary stats
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.text(`Items Bought: ${boughtItems.length}`, 14, startY + 15);
-      doc.text(`Items Not Found: ${unboughtItems.length}`, 14, startY + 20);
+      pdfDoc.setFont("helvetica", "normal");
+      pdfDoc.setFontSize(9);
+      pdfDoc.text(`Items Bought: ${boughtItems.length}`, 14, startY + 15);
+      pdfDoc.text(`Items Not Found: ${unboughtItems.length}`, 14, startY + 20);
       
-      doc.save(`receipt-${currentSessionId}.pdf`);
+      pdfDoc.save(`receipt-${currentSessionId}.pdf`);
+      
+      // Mark session as checked out
+      try {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', currentSessionId), {
+          isCheckedOut: true
+        });
+      } catch (err) { console.error('Error marking session as checked out:', err); }
+      
+      // Redirect to home page after a short delay to ensure PDF downloads
+      setTimeout(() => {
+        setView('home');
+        setCurrentSessionId(null);
+      }, 500);
     } catch (error) { console.error(error); }
     setIsGeneratingPdf(false);
   };
