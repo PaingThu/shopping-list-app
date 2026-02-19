@@ -58,8 +58,12 @@ export default function ShoppingPage({
                 <p className="text-[10px] text-indigo-200 mt-1 font-bold uppercase tracking-wider">Total: {(sessions.find(s => s.id === currentSessionId)?.total || 0).toLocaleString()} {currency.symbol}</p>
               </div>
             </div>
-            <button onClick={handleCheckoutClick} disabled={isGeneratingPdf || !isBuyer || isCheckedOut} className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg ${isCheckedOut || !isBuyer ? 'hidden' : 'bg-green-500'}`}>
-              {isGeneratingPdf ? <Loader2 size={14} className="animate-spin" /> : <Receipt size={14} />} {t.checkout}
+            <button
+              onClick={handleCheckoutClick}
+              disabled={isGeneratingPdf || isCheckedOut || (!isBuyer && !isCreator)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg ${(!isBuyer && !isCheckedOut) ? 'hidden' : (isCheckedOut ? 'bg-indigo-500' : 'bg-green-500')}`}>
+              {isGeneratingPdf ? <Loader2 size={14} className="animate-spin" /> : <Receipt size={14} />}
+              {isCheckedOut ? (t.receipt || 'Receipt') : t.checkout}
             </button>
           </div>
         </header>

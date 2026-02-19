@@ -615,6 +615,7 @@ export default function App() {
             activeItems={activeItems}
             isCreator={isCreator}
             isBuyer={isBuyer}
+            isCheckedOut={currentSession?.isCheckedOut || false}
             handleCheckClick={handleCheckClick}
             deleteItem={deleteItem}
             currency={currency}
