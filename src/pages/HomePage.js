@@ -55,7 +55,7 @@ export default function HomePage({
               return (
                 <div key={session.id} onClick={() => { setCurrentSessionId(session.id); setView('shopping'); }} className="w-full text-left bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex items-center justify-between group">
                   <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                    <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0"><Store size={22} /></div>
+                    <div className={`p-3 rounded-2xl shrink-0 transition-colors ${isCreator ? 'bg-blue-100 text-blue-700 group-hover:bg-blue-700 group-hover:text-white' : isBuyer ? 'bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white' : 'bg-indigo-50 text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white'}`}><Store size={22} /></div>
                     <div className="overflow-hidden">
                       <div className="flex items-center gap-2">
                         <h3 className="font-black text-gray-800 text-sm truncate">{session.name}</h3>
