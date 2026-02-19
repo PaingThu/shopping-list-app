@@ -60,7 +60,7 @@ export default function ShoppingPage({
             </div>
             <button
               onClick={handleCheckoutClick}
-              disabled={isGeneratingPdf || isCheckedOut || (!isBuyer && !isCreator)}
+              disabled={isGeneratingPdf || (!isCheckedOut && !isBuyer)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg ${(!isBuyer && !isCheckedOut) ? 'hidden' : (isCheckedOut ? 'bg-indigo-500' : 'bg-green-500')}`}>
               {isGeneratingPdf ? <Loader2 size={14} className="animate-spin" /> : <Receipt size={14} />}
               {isCheckedOut ? (t.receipt || 'Receipt') : t.checkout}
