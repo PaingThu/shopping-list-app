@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut
 } from 'firebase/auth';
 import { 
@@ -27,6 +28,7 @@ import {
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import ShoppingPage from './pages/ShoppingPage';
+import ResetPassword from './pages/ResetPassword';
 
 /**
  * LOCAL SETUP INSTRUCTIONS:
@@ -118,6 +120,31 @@ const translations = {
   }
 };
 
+// small i18n additions for password reset
+translations.en.forgotPassword = "Forgot password?";
+translations.en.forgotPasswordModal = "Reset Password";
+translations.en.resetPassword = "Send Reset Link";
+translations.en.resetSent = "Password reset email sent. Check your inbox.";
+translations.en.resetError = "Enter a valid email to reset password.";
+translations.en.resetPasswordTitle = "Reset your password";
+translations.en.newPassword = "New Password";
+translations.en.confirmPassword = "Confirm Password";
+translations.en.passwordMismatch = "Passwords do not match.";
+translations.en.resetSuccess = "Password updated. You can now sign in.";
+translations.en.resetPasswordButton = "Set New Password";
+
+translations.ja.forgotPassword = "パスワードをお忘れですか？";
+translations.ja.forgotPasswordModal = "パスワードのリセット";
+translations.ja.resetPassword = "リセットリンクを送信";
+translations.ja.resetSent = "パスワードリセットのメールを送信しました。受信トレイを確認してください。";
+translations.ja.resetError = "有効なメールアドレスを入力してください。";
+translations.ja.resetPasswordTitle = "パスワードのリセット";
+translations.ja.newPassword = "新しいパスワード";
+translations.ja.confirmPassword = "パスワードの確認";
+translations.ja.passwordMismatch = "パスワードが一致しません。";
+translations.ja.resetSuccess = "パスワードが更新されました。ログインできます。";
+translations.ja.resetPasswordButton = "新しいパスワードを設定";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -149,7 +176,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newItemText, setNewItemText] = useState('');
   
-  const [markets] = useState(['General Market', 'Costco', 'Supermarket', 'Local Shop']);
+  const [markets] = useState(['OK Daily Low Price', 'Bellex', 'Tobu', 'Others']);
   const [isCreatePopupOpen, setIsCreatePopupOpen] = useState(false);
   
   const [tempMarket, setTempMarket] = useState('General Market');
@@ -162,6 +189,10 @@ export default function App() {
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [unboughtItemStatuses, setUnboughtItemStatuses] = useState({});
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordStatus, setForgotPasswordStatus] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
 
   const t = translations[lang] || translations.en;
 
@@ -274,6 +305,28 @@ export default function App() {
       }
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setForgotPasswordStatus('');
+    if (!forgotPasswordEmail || !forgotPasswordEmail.includes('@')) {
+      setForgotPasswordStatus(t.resetError);
+      return;
+    }
+    setForgotPasswordLoading(true);
+    try {
+      // Firebase sendPasswordResetEmail will send if email exists
+      await sendPasswordResetEmail(auth, forgotPasswordEmail);
+      console.log('Password reset request sent for:', forgotPasswordEmail);
+      // Show success message and keep modal open so user can see it
+      setForgotPasswordStatus('✓ Reset link sent! Check your email (including spam folder). If you don\'t see it in a few minutes, the email might not be registered.');
+    } catch (err) {
+      console.error('Password reset error:', err);
+      // Show Firebase error or generic message
+      setForgotPasswordStatus(err.message || 'Could not send reset email. Please try again.');
+    } finally {
+      setForgotPasswordLoading(false);
     }
   };
 
@@ -556,24 +609,38 @@ export default function App() {
       </div>
     );
   }
+    if (!user || user.isAnonymous) {
+      // If the URL contains a password reset code, show the ResetPassword page.
+      const params = new URLSearchParams(window.location.search || window.location.hash.split('?')[1] || '');
+      const oobCode = params.get('oobCode');
+      const mode = params.get('mode');
+      if (oobCode && mode === 'resetPassword') {
+        return <ResetPassword auth={auth} t={t} />;
+      }
 
-  if (!user || user.isAnonymous) {
-    return (
-      <LoginPage
-        authMode={authMode}
-        setAuthMode={setAuthMode}
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        authError={authError}
-        setAuthError={setAuthError}
-        handleAuth={handleAuth}
-        authLoading={authLoading}
-        t={t}
-      />
-    );
-  }
+      return (
+        <LoginPage
+          authMode={authMode}
+          setAuthMode={setAuthMode}
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          authError={authError}
+          setAuthError={setAuthError}
+          handleAuth={handleAuth}
+          handlePasswordReset={handlePasswordReset}
+          authLoading={authLoading}
+          isForgotPasswordOpen={isForgotPasswordOpen}
+          setIsForgotPasswordOpen={setIsForgotPasswordOpen}
+          forgotPasswordEmail={forgotPasswordEmail}
+          setForgotPasswordEmail={setForgotPasswordEmail}
+          forgotPasswordStatus={forgotPasswordStatus}
+          forgotPasswordLoading={forgotPasswordLoading}
+          t={t}
+        />
+      );
+    }
 
   const activeItems = items.filter(i => !i.completed);
   const boughtItemsDisplay = items.filter(i => i.completed);
