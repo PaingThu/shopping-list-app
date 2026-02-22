@@ -179,7 +179,7 @@ export default function App() {
   const [markets] = useState(['OK Daily Low Price', 'Bellex', 'Tobu', 'Others']);
   const [isCreatePopupOpen, setIsCreatePopupOpen] = useState(false);
   
-  const [tempMarket, setTempMarket] = useState('General Market');
+  const [tempMarket, setTempMarket] = useState(markets[0]);
   const [tempName, setTempName] = useState('');
   const [tempBuyerEmail, setTempBuyerEmail] = useState('');
 
