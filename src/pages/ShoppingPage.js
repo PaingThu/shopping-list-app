@@ -54,7 +54,8 @@ export default function ShoppingPage({
             <div className="flex items-center space-x-2">
               <button onClick={() => setView('home')} className="p-2 -ml-2 hover:bg-white/10 rounded-full"><ChevronLeft size={24} /></button>
               <div className="max-w-[180px]">
-                <h1 className="text-lg font-black leading-tight truncate">{sessions.find(s => s.id === currentSessionId)?.name}</h1>
+                <h1 className="text-lg font-black leading-tight truncate">{sessions.find(s => s.id === currentSessionId)?.name.split('@')[1]}</h1>
+                <p className="text-[10px] text-indigo-200 mt-1 font-bold uppercase tracking-wider">{sessions.find(s => s.id === currentSessionId)?.name.split('@')[0]}</p>
                 <p className="text-[10px] text-indigo-200 mt-1 font-bold uppercase tracking-wider">Total: {(sessions.find(s => s.id === currentSessionId)?.total || 0).toLocaleString()} {currency.symbol}</p>
               </div>
             </div>
